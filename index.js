@@ -1,8 +1,12 @@
 const express = require('express')
 const app = express()
-const bodyParser = require('body-parser')
 
+const bodyParser = require('body-parser')
 app.use(bodyParser.json())
+
+//Morgan middleware
+const morgan = require('morgan')
+app.use(morgan('tiny'))
 
 let persons = [
 	{
@@ -106,6 +110,12 @@ app.post('/api/persons', (req, res) => {
 	persons = persons.concat(newPerson)
 	res.json(newPerson)
 })
+
+//This middleware is used for catching requests made to non-existent routes.
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {
