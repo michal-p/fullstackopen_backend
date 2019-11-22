@@ -86,6 +86,22 @@ const getRandInt = (max = 100000) => {
 
 app.post('/api/persons', (req, res) => {
 	let newPerson = req.body
+	let isNewPersonIncorrect = false
+	const templateObj = {
+		name: newPerson.name,
+		number: newPerson.number
+	}
+	Object.keys(templateObj).forEach(prop => {
+		isNewPersonIncorrect = isNewPersonIncorrect || !prop.length || !newPerson[prop]
+	})
+	if(isNewPersonIncorrect) {
+		return res.status(400).json({error: "Person's information are missing."})
+	}
+
+	if(persons.find(p => p.name === templateObj.name)) {
+		return res.status(409).json({error: "The name has already exists in the Phonebook."})
+	}
+
 	newPerson.id = getRandInt()
 	persons = persons.concat(newPerson)
 	res.json(newPerson)
