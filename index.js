@@ -1,6 +1,12 @@
 const express = require('express')
 const app = express()
 
+//This middleware allow to call request from different domain
+//Cross-Origin Resource Sharing (CORS)
+//In our case localhost:3000/... -> localhost:3001/...
+const cors = require('cors')
+app.use(cors())
+
 const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
@@ -99,7 +105,7 @@ app.post('/api/persons', (req, res) => {
 		number: newPerson.number
 	}
 	Object.keys(templateObj).forEach(prop => {
-		isNewPersonIncorrect = isNewPersonIncorrect || !prop.length || !newPerson[prop]
+		isNewPersonIncorrect = isNewPersonIncorrect || !prop.length || !templateObj[prop]
 	})
 	if(isNewPersonIncorrect) {
 		return res.status(400).json({error: "Person's information are missing."})
@@ -115,6 +121,7 @@ app.post('/api/persons', (req, res) => {
 })
 
 //This middleware is used for catching requests made to non-existent routes.
+//Kedze tu nemam handler na PUT tak to skonci tu
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
