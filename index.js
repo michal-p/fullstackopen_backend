@@ -1,5 +1,10 @@
 const express = require('express')
 const app = express()
+/**
+ * whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address. If a correct file is found, express will return it. 
+ * Now HTTP GET requests to the address www.serversaddress.com/index.html or www.serversaddress.com will show the React frontend. GET requests to the address www.serversaddress.com/notes will be handled by the backend's code.
+ */
+app.use(express.static('build')) //Frontend files
 
 //This middleware allow to call request from different domain
 //Cross-Origin Resource Sharing (CORS)
