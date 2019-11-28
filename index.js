@@ -1,3 +1,58 @@
+const mongoose = require('mongoose')
+
+if ( process.argv.length<3 ) {
+  console.log('give password as argument')
+  process.exit(1)
+}
+
+const dbName = 'phonebook-app'
+
+const password = process.argv[2]
+const name = process.argv[3]
+const number = process.argv[4]
+
+const url =
+	`mongodb+srv://michal-p:${password}@fullstackphonebook-ohxuc.mongodb.net/${dbName}?retryWrites=true&w=majority`
+
+mongoose.connect(url, { useNewUrlParser: true })
+
+const phonebookSchema = new mongoose.Schema({
+  name: String,
+  number: Number
+})
+
+phonebookSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
+
+const Person = mongoose.model('Person', phonebookSchema)
+
+const person = new Person({
+  name: name,
+  number: number
+})
+
+if(process.argv.length < 4) {
+	Person.find({}).then(result => {
+		console.log("phonebook:")
+		result.forEach(person => {
+			console.log(`${person.name} ${person.number}`)
+		})
+		//mongoose.connection.close()
+	})
+} else {
+	person.save().then(response => {
+		console.log(`added ${response.name} number ${response.number}`)
+		//mongoose.connection.close()
+	})
+}
+
+
+
 const express = require('express')
 const app = express()
 /**
@@ -22,7 +77,7 @@ morgan.token('body', (req, res) => {
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = [
+let people = [
 	{
 		"name": "Arto Hellas",
 		"number": "040-123456",
@@ -70,21 +125,24 @@ let persons = [
 	}
 ]
 
-app.get('/api/persons', (req, res) => {
-	res.json(persons)
+app.get('/api/people', (req, res) => {
+	Person.find({}).then(ludia => {
+		res.json(ludia.map(per => per.toJSON())) //The toJSON method we defined transforms object into a string just to be safe.
+	})
+	// res.json(people)
 })
 
 app.get('/info', (req, res) => {
-	const personsCount = persons.length
+	const peopleCount = people.length
 	res.send(`
-		<p>Phonebook has info for ${personsCount} people</p>
+		<p>Phonebook has info for ${peopleCount} people</p>
 		<p>${new Date()}</p>
 	`)
 })
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/people/:id', (req, res) => {
 	const id = Number(req.params.id)
-	const person = persons.find(p => p.id === id)
+	const person = people.find(p => p.id === id)
 	if(person) {
 		res.json(person)
 	} else {
@@ -92,9 +150,9 @@ app.get('/api/persons/:id', (req, res) => {
 	}
 })
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/people/:id', (req, res) => {
 	const id = Number(req.params.id)
-	persons = persons.filter(p => p.id !== id)
+	people = people.filter(p => p.id !== id)
 	res.status(204).end()
 })
 
@@ -102,7 +160,7 @@ const getRandInt = (max = 100000) => {
 	return Math.floor(Math.random() * Math.floor(max))
 }
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/people', (req, res) => {
 	let newPerson = req.body
 	let isNewPersonIncorrect = false
 	const templateObj = {
@@ -116,12 +174,12 @@ app.post('/api/persons', (req, res) => {
 		return res.status(400).json({error: "Person's information are missing."})
 	}
 
-	if(persons.find(p => p.name === templateObj.name)) {
+	if(people.find(p => p.name === templateObj.name)) {
 		return res.status(409).json({error: "The name has already exists in the Phonebook."})
 	}
 
 	newPerson.id = getRandInt()
-	persons = persons.concat(newPerson)
+	people = people.concat(newPerson)
 	res.json(newPerson)
 })
 
