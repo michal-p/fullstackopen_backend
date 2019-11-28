@@ -21,22 +21,22 @@ const phonebookSchema = new mongoose.Schema({
   number: Number
 })
 
-const Phonebook = mongoose.model('Phonebook', phonebookSchema)
+const People = mongoose.model('Person', phonebookSchema)
 
-const phonebook = new Phonebook({
+const person = new People({
   name: name,
   number: number
 })
 
 if(process.argv.length < 4) {
-	Phonebook.find({}).then(result => {
+	People.find({}).then(result => {
 		result.forEach(person => {
-			console.log(`added ${person.name} number ${person.number}`)
+			console.log(`${person.name} ${person.number}`)
 		})
 		mongoose.connection.close()
 	})
 } else {
-	phonebook.save().then(response => {
+	person.save().then(response => {
 		console.log(`added ${response.name} number ${response.number}`)
 		mongoose.connection.close()
 	})

@@ -1,60 +1,9 @@
-const mongoose = require('mongoose')
-
-if ( process.argv.length<3 ) {
-  console.log('give password as argument')
-  process.exit(1)
-}
-
-const dbName = 'phonebook-app'
-
-const password = process.argv[2]
-const name = process.argv[3]
-const number = process.argv[4]
-
-const url =
-	`mongodb+srv://michal-p:${password}@fullstackphonebook-ohxuc.mongodb.net/${dbName}?retryWrites=true&w=majority`
-
-mongoose.connect(url, { useNewUrlParser: true })
-
-const phonebookSchema = new mongoose.Schema({
-  name: String,
-  number: Number
-})
-
-phonebookSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-})
-
-const Person = mongoose.model('Person', phonebookSchema)
-
-const person = new Person({
-  name: name,
-  number: number
-})
-
-if(process.argv.length < 4) {
-	Person.find({}).then(result => {
-		console.log("phonebook:")
-		result.forEach(person => {
-			console.log(`${person.name} ${person.number}`)
-		})
-		//mongoose.connection.close()
-	})
-} else {
-	person.save().then(response => {
-		console.log(`added ${response.name} number ${response.number}`)
-		//mongoose.connection.close()
-	})
-}
-
-
-
+require('dotenv').config()
 const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
+const Person = require('./models/person')
+
 /**
  * whenever express gets an HTTP GET request it will first check if the build directory contains a file corresponding to the request's address. If a correct file is found, express will return it. 
  * Now HTTP GET requests to the address www.serversaddress.com/index.html or www.serversaddress.com will show the React frontend. GET requests to the address www.serversaddress.com/notes will be handled by the backend's code.
@@ -67,7 +16,6 @@ app.use(express.static('build')) //Frontend files
 const cors = require('cors')
 app.use(cors())
 
-const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
 //Morgan middleware
@@ -141,13 +89,16 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/people/:id', (req, res) => {
-	const id = Number(req.params.id)
-	const person = people.find(p => p.id === id)
-	if(person) {
-		res.json(person)
-	} else {
-		res.status(400).end()
-	}
+	Person.findById(req.params.id).then(per => {
+		res.json(per.toJSON())
+	})
+	// const id = Number(req.params.id)
+	// const person = people.find(p => p.id === id)
+	// if(person) {
+	// 	res.json(person)
+	// } else {
+	// 	res.status(400).end()
+	// }
 })
 
 app.delete('/api/people/:id', (req, res) => {
@@ -161,11 +112,11 @@ const getRandInt = (max = 100000) => {
 }
 
 app.post('/api/people', (req, res) => {
-	let newPerson = req.body
+	let body = req.body
 	let isNewPersonIncorrect = false
 	const templateObj = {
-		name: newPerson.name,
-		number: newPerson.number
+		name: body.name,
+		number: body.number
 	}
 	Object.keys(templateObj).forEach(prop => {
 		isNewPersonIncorrect = isNewPersonIncorrect || !prop.length || !templateObj[prop]
@@ -174,13 +125,18 @@ app.post('/api/people', (req, res) => {
 		return res.status(400).json({error: "Person's information are missing."})
 	}
 
-	if(people.find(p => p.name === templateObj.name)) {
-		return res.status(409).json({error: "The name has already exists in the Phonebook."})
-	}
+	const person = new Person({
+		name: body.name,
+		number: body.number
+	})
 
-	newPerson.id = getRandInt()
-	people = people.concat(newPerson)
-	res.json(newPerson)
+	person.save().then(savedPerson => {
+		res.json(savedPerson.toJSON())
+	})
+
+	// if(people.find(p => p.name === templateObj.name)) {
+	// 	return res.status(409).json({error: "The name has already exists in the Phonebook."})
+	// }
 })
 
 //This middleware is used for catching requests made to non-existent routes.
@@ -190,7 +146,8 @@ const unknownEndpoint = (request, response) => {
 }
 app.use(unknownEndpoint)
 
-const PORT = process.env.PORT || 3001//Heroku port or 3001
+//const PORT = process.env.PORT || 3001//Heroku port or 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`)
 })
