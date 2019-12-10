@@ -140,21 +140,12 @@ app.post('/api/people', (request, response, next) => {
 		name: body.name,
 		number: body.number
 	})
-	
-	Person.findOne({name: person.name})
-		.then(per => {
-			if(per) {
-				response.status(409)
-					.json({error: "The name has already exists in the Phonebook."})
-			} else {
-				person.save()
-					//object returned by Mongoose
-					.then(newPerson => newPerson.toJSON())
-					//formatted
-					.then(newPersonFormatted => response.json(newPersonFormatted)) 
-					.catch(error => next(error))
-			}
-		})
+
+	person.save()
+		//object returned by Mongoose
+		.then(newPerson => newPerson.toJSON())
+		//formatted
+		.then(newPersonFormatted => response.json(newPersonFormatted)) 
 		.catch(error => next(error))
 })
 

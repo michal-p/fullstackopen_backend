@@ -1,7 +1,7 @@
-POST https://desolate-headland-64649.herokuapp.com/api/people HTTP/1.1
+POST http://localhost:3001/api/people HTTP/1.1
 Content-Type: application/json
 
 {
-	"name": "Majo",
-	"number": 999
+	"name": "QQQQQ",
+	"number": 9
 }

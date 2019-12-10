@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const uniqueValidator = require('mongoose-unique-validator');
 mongoose.set('useFindAndModify', false)
 
 
@@ -18,6 +19,7 @@ const phonebookSchema = new mongoose.Schema({
 	name: {
     type: String,
     minlength: 5,
+    unique: true,
 		required: [true, 'User name min length 5 characters required']
 	},
 	number: {
@@ -39,5 +41,7 @@ phonebookSchema.set('toJSON', {
     delete returnedObject.__v
   }
 })
+
+phonebookSchema.plugin(uniqueValidator)
 
 module.exports = mongoose.model('Person', phonebookSchema)
