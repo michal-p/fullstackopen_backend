@@ -135,17 +135,6 @@ app.put('/api/people/:id', (request, response, next) => {
 
 app.post('/api/people', (request, response, next) => {
 	let body = request.body
-	let isNewPersonIncorrect = false
-	const templateObj = {
-		name: body.name,
-		number: body.number
-	}
-	Object.keys(templateObj).forEach(prop => {
-		isNewPersonIncorrect = isNewPersonIncorrect || !prop.length || !templateObj[prop]
-	})
-	if(isNewPersonIncorrect) {
-		return response.status(400).json({error: "Person's information are missing."})
-	}
 
 	const person = new Person({
 		name: body.name,
@@ -155,12 +144,14 @@ app.post('/api/people', (request, response, next) => {
 	Person.findOne({name: person.name})
 		.then(per => {
 			if(per) {
-				response.status(409).json({error: "The name has already exists in the Phonebook."})
+				response.status(409)
+					.json({error: "The name has already exists in the Phonebook."})
 			} else {
-				Person.create(person)
-					.then(newPerson => {
-						response.json(newPerson.toJSON())
-					})
+				person.save()
+					//object returned by Mongoose
+					.then(newPerson => newPerson.toJSON())
+					//formatted
+					.then(newPersonFormatted => response.json(newPersonFormatted)) 
 					.catch(error => next(error))
 			}
 		})
@@ -182,7 +173,9 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
 		return response.status(400).send({ error: 'malformatted id' })
-	}
+	} else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
 	//If we do not catch, here we are passing error to default error handler
   next(error)
 }
