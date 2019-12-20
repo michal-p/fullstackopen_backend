@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const uniqueValidator = require('mongoose-unique-validator');
+const uniqueValidator = require('mongoose-unique-validator')
 mongoose.set('useFindAndModify', false)
 
 
@@ -8,7 +8,7 @@ const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
@@ -16,13 +16,13 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   })
 
 const phonebookSchema = new mongoose.Schema({
-	name: {
+  name: {
     type: String,
     minlength: 3,
     unique: true,
-		required: [true, 'User name min length 5 characters required']
-	},
-	number: {
+    required: [true, 'User name min length 5 characters required']
+  },
+  number: {
     type: Number,
     unique: true,
     validate: {
@@ -31,8 +31,8 @@ const phonebookSchema = new mongoose.Schema({
       },
       message: props => `${props.value} is not a valid phone number`
     },
-		required: [true, 'User phone number required']
-	}
+    required: [true, 'User phone number required']
+  }
 })
 
 phonebookSchema.set('toJSON', {
