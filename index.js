@@ -7,15 +7,15 @@ const peopleRouter = require('./controllers/people')
 //Morgan middleware to your application for logging
 //Middleware is a function that receives three parameters:request, response, next
 //The next function yields control to the next middleware.
-// const morgan = require('morgan')
+const morgan = require('morgan')
 
 app.use(cors())
 app.use(express.static('build')) //Frontend files
 app.use(bodyParser.json())
-// morgan.token('body', (req) => {
-//   return JSON.stringify(req.body)
-// })
-// app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+morgan.token('body', (req) => {
+  return JSON.stringify(req.body)
+})
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 app.use('/api/people', peopleRouter)
 
 

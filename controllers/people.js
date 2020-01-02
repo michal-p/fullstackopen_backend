@@ -49,6 +49,8 @@ peopleRouter.put('/:id', (request, response, next) => {
     .then(updatePerson => {
       response.json(updatePerson.toJSON())
     })
+    //formatted
+    .then(updatedPersonFormatted => response.json(updatedPersonFormatted))
     .catch(error => next(error))
 })
 
